@@ -1,40 +1,47 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, TouchableHighlight } from 'react-native'
+import { View, FlatList, Text, ActivityIndicator } from 'react-native'
+import axios from 'axios';
 
 export default class App extends Component {
     state = {
-        backgroundColor: 'skyblue'
+        isLoading: true,
+        dataSource: []
+    };
+
+    componentDidMount() {
+        return axios.get("https://swdestinydb.com/api/public/sets").then((response) => {
+            return response.data
+        }).then((sets) => {
+            this.setState({
+                isLoading: false,
+                dataSource: sets
+            });
+        }).catch((e) => {
+            console.error(e);
+        })
     }
 
     render() {
-        const color = this.state.backgroundColor;
+        if(this.state.isLoading){
+            return(
+                <View style={{flex: 1, padding: 60}}>
+                    <ActivityIndicator/>
+                </View>
+            )
+        }
 
-        const styles = StyleSheet.create({
-            container: {
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-            },
-            box: {
-                width: 200,
-                height: 200,
-                backgroundColor: color,
-                borderWidth: 2,
-                borderColor: 'steelblue',
-                borderRadius: 20,
-            },
-        });
-
-        return (
-            <View style={styles.container}>
-                <TouchableHighlight testID="colorButton" onPress={() => {
-                    this.setState({
-                        backgroundColor: 'purple'
-                    });
-                }}>
-                    <View testID="colorBox" style={styles.box} />
-                </TouchableHighlight>
+        return(
+            <View style={{flex: 1, paddingTop:60}}>
+                <FlatList
+                    data={this.state.dataSource}
+                    renderItem={({item}) => (
+                        <View style={{flex: 1, paddingTop:10, paddingBottom: 10}}>
+                            <Text testID={item.code} style={{fontWeight: 'bold', fontSize: 18}}>{item.name}</Text>
+                        </View>
+                    )}
+                    keyExtractor={(item) => item.code}
+                />
             </View>
-        )
+        );
     }
 }
